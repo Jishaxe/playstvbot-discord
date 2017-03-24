@@ -42,7 +42,7 @@ class Tracker extends EventEmitter {
                 }
             }
 
-            // self.database.updateTime(userId)
+            self.database.updateTime(userId)
         }).catch(console.error)
     }
 }

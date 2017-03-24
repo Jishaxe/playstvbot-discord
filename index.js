@@ -19,11 +19,21 @@ bot.on("ready", () => {
 })
 
 tracker.on("newVideo", (eventData) => {
-    console.log(`New video from ${eventData.author.id}! ${eventData.description}`)
     database.getChannelsForEvent(eventData.author.id, "newVideo")
     .then((subscribedChannels) => {
+        embed = new Discord.RichEmbed()
+        embed.setTitle(`${eventData.author.id} has uploaded a new video!`)
+        embed.setDescription(eventData.description)
+        embed.setImage("http:" + eventData.thumbnail)
+        embed.setThumbnail("http:" + eventData.author.avatar)
+        embed.setTimestamp(new Date(eventData.upload_time * 1000))
+        embed.setColor("#1A7498")
+        embed.setFooter("Playing " + eventData.game.title)
+        embed.addField("FOLLOWERS", eventData.author.stats.followers, true)
+        embed.addField("VIDEOS", eventData.author.stats.videos, true)
+        embed.setURL(eventData.link)
         for (channelId of subscribedChannels) {
-            bot.channels.get(channelId).sendMessage(`New video from ${eventData.author.id}! ${eventData.description}`).catch(console.error)
+            bot.channels.get(channelId).sendEmbed(embed).catch(console.error)
         }
     }).catch(console.error)
 })
