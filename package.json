@@ -1,0 +1,23 @@
+{
+  "name": "playstvbot-discord",
+  "version": "1.0.0",
+  "description": "PlaysTV bot for discord",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jishaxe/playstvbot-discord.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jishaxe/playstvbot-discord/issues"
+  },
+  "homepage": "https://github.com/Jishaxe/playstvbot-discord#readme",
+  "dependencies": {
+    "config": "^1.25.1",
+    "discord.js": "^11.0.0"
+  }
+}

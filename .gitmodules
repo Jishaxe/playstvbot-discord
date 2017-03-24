@@ -1,0 +1,3 @@
+[submodule "playstv-node"]
+	path = playstv-node
+	url = https://github.com/Jishaxe/playstv-node
