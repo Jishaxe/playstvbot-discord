@@ -14,12 +14,22 @@ let playstv = PlaysTV({appid: config.get("PlaysTV.appid"), appkey: config.get("P
 let tracker = new Tracker(database, playstv)
 let processor = new Processor(config.get("PlaysTV.witaiToken"), database, playstv)
 
+let updateChannel 
+
 bot.once("ready", () => {
     console.log("Plays.tv bot is now active!")
     bot.user.setGame(`@${bot.user.username} help`)
+    updateChannel = bot.channels.get("296359806351179778")
+    updateChannel.sendMessage("I've just come online.")
 
-    tracker.update().catch(console.error)
+    // Update every two minutes
+    setInterval(() => {
+        tracker.update().catch(console.error)
+    }, 10000) 
 })
+
+bot.on("guildCreate", (guild) => updateChannel.sendMessage("I've just joined the server **" + guild.name + "**"))
+bot.on("guildDelete", (guild) => updateChannel.sendMessage("I've just joined the server **" + guild.name + "**"))
 
 tracker.on("newVideo", (eventData) => {
     database.getChannelsForEvent(eventData.author.id, "newVideo")
@@ -41,11 +51,16 @@ tracker.on("newVideo", (eventData) => {
     }).catch(console.error)
 })
 
-bot.on("error", console.error)
+bot.on("error", (err) => {
+    console.error(err)
+    updateChannel.sendMessage("I've just had an error: ```" + err.stack + "```")
+})
+
 bot.on("message", (msg) => {
     processor.handle(msg).catch((err) =>{
         console.log("Error handling message: " + msg.content)
         console.log(err)
+        updateChannel.sendMessage("I've just had an error: ```" + err + "```")
     })
 })
 

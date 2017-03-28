@@ -1,6 +1,7 @@
 const Wit = require("node-wit").Wit
 const util = require("./util")
 const Embed = require('discord.js').RichEmbed
+const numberToWords = require("number-to-words")
 
 /**
  * Processes commands using Wit.ai
@@ -36,7 +37,21 @@ class Processor {
         // Clean up the text for witai
         let text = msg.cleanContent
         text = text.substring(0, 100)
-        text = text.replace("@" + msg.client.user.username, "")
+        text = text.replace("@" + msg.client.user.username, "").trim()
+
+        console.log(text)
+        if (text == "help") {
+            let embed = new Embed()
+            embed.setAuthor("Created by jshxe", "https://cdn.discordapp.com/avatars/227874586312704000/316cee9c84be6297bbb3d423ef866dac.jpg")
+            .setTitle("Plays.tv Beta")
+            .setColor("#FFFFFF")
+            .setThumbnail("https://images.discordapp.net/avatars/294914644961656832/d3d996e038b5a4b98b785a05b9fd0b8e.png?size=1024")
+            .setDescription(`I'll keep you updated with new videos from your favourite Plays.tv creators. Control me with natural language. Try:\n\n\`\`\`@Plays.tv follow jshxe in #general\`\`\``)
+            .addField("➕ Want me?", `[Add me](https://discordapp.com/oauth2/authorize?&client_id=${msg.client.user.id}&scope=bot)`, true)
+            .addField("📓 GitHub", "[View Source](https://github.com/Jishaxe/playstvbot-discord)", true)
+            .setFooter(`🖥️ Active on ${numberToWords.toWords(msg.client.guilds.size)} servers`)
+            return msg.channel.sendEmbed(embed)
+        }
 
         // Send the message to witai and process the answer
         return this.wit.message(text).then((data) => this.action(data, msg))

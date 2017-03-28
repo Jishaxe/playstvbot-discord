@@ -15,8 +15,10 @@ class Tracker extends EventEmitter {
         // Check every tracked user
         return this.database.getTrackedUsers()
         .then((trackedUsers) => {
-            for (let user in trackedUsers) {
-                self.checkForNewVideos(user) // Check for new videos
+            for (let userId in trackedUsers) {
+                // Only check this user if it wasn't checked in the last 2 minutes or so
+                if (Date.now() - trackedUsers[userId].lastUpdatedAt < (120000 + Math.random() * 10000)) continue
+                return self.checkForNewVideos(userId) // Check for new videos
             }
         })
     }

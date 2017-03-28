@@ -43,7 +43,12 @@ class Database {
      * @param {String} channelId Discord channel ids
      */
     trackVideos(id, channelId) {
-        return this.db.child(`trackedUsers/${id}/events/newVideo`).push().set(channelId)
+        let self = this
+        this.db.child(`trackedUsers/${id}/events/newVideo`).push().set(channelId)
+        return this.db.child(`trackedUsers/${id}/events/newVideo`).once("value").then((sc) => {
+            // If this is the first time that the user has been tracked, update the time
+            if (sc.val() == null || sc.val().lastUpdatedAt == null) return self.updateTime(id)
+        })
     }
 
     /**
