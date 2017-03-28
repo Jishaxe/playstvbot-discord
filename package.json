@@ -18,7 +18,10 @@
   "homepage": "https://github.com/Jishaxe/playstvbot-discord#readme",
   "dependencies": {
     "config": "^1.25.1",
+    "did-you-mean": "0.0.1",
     "discord.js": "^11.0.0",
-    "firebase": "^3.7.3"
+    "firebase": "^3.7.3",
+    "node-wit": "^4.2.0",
+    "wordwrap": "^1.0.0"
   }
 }
