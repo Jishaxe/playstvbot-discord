@@ -100,7 +100,7 @@ class Processor {
             .length > 0) 
         })
         .catch((err) => {
-            if (err.indexOf && err.indexOf("404") !== -1) results.invalidUsername = true
+            if (err.indexOf && (err.indexOf("404") !== -1 || err.indexOf("400") !== -1)) return results.invalidUsername = true
             else throw err
         })
         .then(() => {

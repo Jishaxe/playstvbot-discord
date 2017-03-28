@@ -39,7 +39,7 @@ class Tracker extends EventEmitter {
             return self.database.getLastUpdated(userId)
         }).then((lastChecked) => {
             for (let video of videos) {
-                if (video.upload_time > lastChecked) {
+                if (video.upload_time > lastChecked / 1000) {
                     self.emit("newVideo", video)
                 }
             }

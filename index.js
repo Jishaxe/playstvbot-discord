@@ -25,11 +25,11 @@ bot.once("ready", () => {
     // Update every two minutes
     setInterval(() => {
         tracker.update().catch(console.error)
-    }, 10000) 
+    }, 1000) 
 })
 
 bot.on("guildCreate", (guild) => updateChannel.sendMessage("I've just joined the server **" + guild.name + "**"))
-bot.on("guildDelete", (guild) => updateChannel.sendMessage("I've just joined the server **" + guild.name + "**"))
+bot.on("guildDelete", (guild) => updateChannel.sendMessage("I've just left the server **" + guild.name + "**"))
 
 tracker.on("newVideo", (eventData) => {
     database.getChannelsForEvent(eventData.author.id, "newVideo")
