@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "rm -rf playstv-node && git clone https://github.com/Jishaxe/playstv-node && cd playstv-node && npm install && cd .. && npm start"
+    "start": "rm -rf playstv-node && git clone https://github.com/Jishaxe/playstv-node && cd playstv-node && npm install && cd .. && node index.js"
   },
   "repository": {
     "type": "git",
