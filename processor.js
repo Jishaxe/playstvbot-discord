@@ -64,6 +64,9 @@ class Processor {
      * @param {Message} msg 
      */
     trackVideos(entities, msg) {
+        let self = this
+        let properUserId
+
         // Fail if no username is found
         if (!entities.username) return msg.reply("you need to specify a Plays.tv username to follow them.")
         
@@ -79,12 +82,16 @@ class Processor {
         // Check the bot has permission to speak in that channel
         if (!channel.permissionsFor(msg.client.user).hasPermission("SEND_MESSAGES")) return msg.reply(`I don't have permission to speak in <#${channel.id}>.`)
 
-        // Now check plays.tv username
+        // Now check plays.tv username and add to tracking database if valid
         return this.playstv.users.get(id).then((user) => {
-            msg.reply(`I'll now post new videos from **${id}** in <#${channel.id}>. You can tell me to unfollow them too.`)
+            properUserId = user.user.id
+            return self.database.trackVideos(properUserId, channel.id)
+        })
+        .then(() => {
+            return msg.reply(`I'll now post new videos from **${properUserId}** in <#${channel.id}>. You can tell me to unfollow them too.`)
         })
         .catch((err) => {
-            if (err.indexOf("404") !== -1) return msg.reply(`I couldn't find the Plays.tv username **${id}**.`)
+            if (err.indexOf && err.indexOf("404") !== -1) return msg.reply(`I couldn't find the Plays.tv username **${id}**.`)
             else throw err
         })
 

@@ -26,7 +26,7 @@ class Database {
      * Get the last updated time for this user
      */
     getLastUpdated(id) {
-        return this.db.child(`trackedUsers/${id}/lastUpdatedAt`).once("value").then((sc) => sc.val())
+        return this.db.child(`trackedUsers/${id}/lastUpdatedAt`).once("value").then((sc) => sc.val() || 0)
     }
 
     /**
@@ -35,16 +35,25 @@ class Database {
     updateTime(id) {
         return this.db.child(`trackedUsers/${id}/lastUpdatedAt`).set(Date.now())
     }
-    
+
+
+    /**
+     * Add a record to the database to start tracking this user
+     * @param {String} id Playstv id 
+     * @param {String} channelId Discord channel ids
+     */
+    trackVideos(id, channelId) {
+        return this.db.child(`trackedUsers/${id}/events/newVideo`).push().set(channelId)
+    }
+
     /**
      * Gets the list of channels subscribed to recieve this event for the id
      * @param {String} id The user id to trigger the event
      * @param {String} event The event this channel is subscribed to
      */
     getChannelsForEvent(id, event) {
-        return this.db.child(`trackedUsers/${id}/events`).once("value").then((sc) => {
-            let data = sc.val()
-            return data[event]
+        return this.db.child(`trackedUsers/${id}/events/${event}`).once("value").then((sc) => {
+            return sc.val()
         })
     }
 }

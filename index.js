@@ -33,7 +33,8 @@ tracker.on("newVideo", (eventData) => {
         embed.setColor("#FFFFFF")
         embed.setFooter("Playing " + eventData.game.title)
         embed.setURL(eventData.link)
-        for (channelId of subscribedChannels) {
+        for (key in subscribedChannels) {
+            let channelId = subscribedChannels[key]
             bot.channels.get(channelId).sendMessage(`**${eventData.author.id}** has uploaded a new video!`)
             bot.channels.get(channelId).sendEmbed(embed).catch(console.error)
         }
