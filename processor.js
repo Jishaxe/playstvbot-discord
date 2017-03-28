@@ -80,8 +80,13 @@ class Processor {
         if (!channel.permissionsFor(msg.client.user).hasPermission("SEND_MESSAGES")) return msg.reply(`I don't have permission to speak in <#${channel.id}>.`)
 
         // Now check plays.tv username
-        return this.playstv.users.get(id).then((user) => msg.reply(`I'll now post new videos from **${id}** in <#${channel.id}>. You can tell me to unfollow them too.`))
-        .catch((err) => msg.reply(`${err} I couldn't find the Plays.tv username **${id}**.`))
+        return this.playstv.users.get(id).then((user) => {
+            msg.reply(`I'll now post new videos from **${id}** in <#${channel.id}>. You can tell me to unfollow them too.`)
+        })
+        .catch((err) => {
+            if (err.indexOf("404") !== -1) return msg.reply(`I couldn't find the Plays.tv username **${id}**.`)
+            else throw err
+        })
 
     }
 
