@@ -101,6 +101,7 @@ class Processor {
         })
         .catch((err) => {
             if (err.indexOf && (err.indexOf("404") !== -1 || err.indexOf("400") !== -1)) return results.invalidUsername = true
+            else if (err.indexOf && err.indexOf("403") !== -1) return results.rateLimited = true
             else throw err
         })
         .then(() => {
@@ -125,6 +126,7 @@ class Processor {
                 return Promise.reject("invalid")
             }
 
+            if (data.rateLimited) return error("**I'm being rate limited by Plays.tv!** Slow down a bit, please.")
             if (data.missingUsername) return error("you need to specify a Plays.tv username to follow them.")
             if (data.invalidChannel) return error(`I don't know what channel #${data.channelText} is.`)
             if (!data.hasPermission) return error(`I don't have permission to speak in <#${data.channel.id}>.`)
