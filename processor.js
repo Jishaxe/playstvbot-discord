@@ -84,7 +84,7 @@ class Processor {
         let results = {}
         results.missingUsername = entities.username == null
         results.channelText = entities.channel ? entities.channel[0].value.replace("#", ""): msg.channel.name
-        results.usernameText = entities.username[0].value.trim()
+        results.usernameText = entities.username ? entities.username[0].value.trim() : null
         results.channel = util.matchChannel(results.channelText, msg.guild)
         results.invalidChannel = results.channel == null
         results.hasPermission = results.channel.permissionsFor(msg.client.user).hasPermission("SEND_MESSAGES")
