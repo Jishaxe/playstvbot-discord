@@ -1,5 +1,6 @@
 const Wit = require("node-wit").Wit
 const util = require("./util")
+const Embed = require('discord.js').RichEmbed
 
 /**
  * Processes commands using Wit.ai
@@ -59,42 +60,65 @@ class Processor {
     }
 
     /**
+     * Validates the playstv username and channel
+     * @param {Object} entities 
+     * @param {Message} msg 
+     */
+    validate(entities, msg) {
+        let self = this
+        let results = {}
+        results.missingUsername = entities.username == null
+        results.channelText = entities.channel ? entities.channel[0].value.replace("#", ""): msg.channel.name
+        results.usernameText = entities.username[0].value.trim()
+        results.channel = util.matchChannel(results.channelText, msg.guild)
+        results.invalidChannel = results.channel == null
+        results.hasPermission = results.channel.permissionsFor(msg.client.user).hasPermission("SEND_MESSAGES")
+
+        return this.playstv.users.get(results.usernameText)
+        .then((user) => {
+            results.user = user.user
+            return self.database.getChannelsForEvent(user.id, "newVideo")
+        })
+        .then((channelsForThisUser) => {
+            results.following = (channelsForThisUser && Object.keys(channelsForThisUser).filter((key) => channelsForThisUser[key] == channel.id).length > 0) 
+        })
+        .catch((err) => {
+            if (err.indexOf && err.indexOf("404") !== -1) results.invalidUsername = true
+            else throw err
+        })
+        .then(() => {
+            return results
+        })
+    }
+
+    /**
      * Handles the trackVideos command
      * @param {Object} entities 
      * @param {Message} msg 
      */
     trackVideos(entities, msg) {
         let self = this
-        let properUserId
+        let data
 
-        // Fail if no username is found
-        if (!entities.username) return msg.reply("you need to specify a Plays.tv username to follow them.")
-        
-        let id = entities.username[0].value.trim()
+        return this.validate(entities, msg).then((d) => {
+            data = d
+            if (data.missingUsername) return msg.reply("you need to specify a Plays.tv username to follow them.")
+            if (data.invalidChannel) return msg.reply(`I don't know what channel #${data.channelText} is.`)
+            if (!data.hasPermission) return msg.reply(`I don't have permission to speak in <#${data.channel.id}>.`)
+            if (data.invalidUsername) return msg.reply(`I couldn't find the Plays.tv username **${data.usernameText}**.`)
+            if (data.following) return msg.reply(`I'm already following **${data.user.id}** in <#${data.channel.id}>. You can tell me to unfollow them.`)
 
-        // If a channel is specified, try and match the closest channel to compensate for typos
-        // Otherwise, choose the channel the msg is in 
-        let channelName = entities.channel ? entities.channel[0].value.replace("#", ""): msg.channel.name
-        let channel = util.matchChannel(channelName, msg.guild)
-
-        if (!channel) return msg.reply(`I don't know what channel #${channelName} is.`)
-        
-        // Check the bot has permission to speak in that channel
-        if (!channel.permissionsFor(msg.client.user).hasPermission("SEND_MESSAGES")) return msg.reply(`I don't have permission to speak in <#${channel.id}>.`)
-
-        // Now check plays.tv username and add to tracking database if valid
-        return this.playstv.users.get(id).then((user) => {
-            properUserId = user.user.id
-            return self.database.trackVideos(properUserId, channel.id)
+            // All checks passed, add this user to the database
+            return self.database.trackVideos(data.user.id, data.channel.id)
         })
         .then(() => {
-            return msg.reply(`I'll now post new videos from **${properUserId}** in <#${channel.id}>. You can tell me to unfollow them too.`)
+            let embed = new Embed();
+            embed.setDescription(`I'll now post new videos from [${data.user.id}](${data.user.link}) in <#${data.channel.id}>. You can tell me to unfollow them too.`)
+            embed.setTitle(`Followed!`)
+            embed.setColor("#FFFFFF")
+            embed.setThumbnail("http:" + data.user.avatar)
+            return msg.channel.sendEmbed(embed)
         })
-        .catch((err) => {
-            if (err.indexOf && err.indexOf("404") !== -1) return msg.reply(`I couldn't find the Plays.tv username **${id}**.`)
-            else throw err
-        })
-
     }
 
     untrackVideos(entities, msg) {
