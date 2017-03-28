@@ -77,10 +77,12 @@ class Processor {
         return this.playstv.users.get(results.usernameText)
         .then((user) => {
             results.user = user.user
-            return self.database.getChannelsForEvent(user.id, "newVideo")
+            return self.database.getChannelsForEvent(results.user.id, "newVideo")
         })
         .then((channelsForThisUser) => {
-            results.following = (channelsForThisUser && Object.keys(channelsForThisUser).filter((key) => channelsForThisUser[key] == channel.id).length > 0) 
+            results.following = (channelsForThisUser !== null
+            && Object.keys(channelsForThisUser).filter((key) => channelsForThisUser[key] == results.channel.id)
+            .length > 0) 
         })
         .catch((err) => {
             if (err.indexOf && err.indexOf("404") !== -1) results.invalidUsername = true
@@ -102,28 +104,69 @@ class Processor {
 
         return this.validate(entities, msg).then((d) => {
             data = d
-            if (data.missingUsername) return msg.reply("you need to specify a Plays.tv username to follow them.")
-            if (data.invalidChannel) return msg.reply(`I don't know what channel #${data.channelText} is.`)
-            if (!data.hasPermission) return msg.reply(`I don't have permission to speak in <#${data.channel.id}>.`)
-            if (data.invalidUsername) return msg.reply(`I couldn't find the Plays.tv username **${data.usernameText}**.`)
-            if (data.following) return msg.reply(`I'm already following **${data.user.id}** in <#${data.channel.id}>. You can tell me to unfollow them.`)
+
+            let error = (txt) => {
+                msg.reply(txt); 
+                return Promise.reject("invalid")
+            }
+
+            if (data.missingUsername) return error("you need to specify a Plays.tv username to follow them.")
+            if (data.invalidChannel) return error(`I don't know what channel #${data.channelText} is.`)
+            if (!data.hasPermission) return error(`I don't have permission to speak in <#${data.channel.id}>.`)
+            if (data.invalidUsername) return error(`I couldn't find the Plays.tv username **${data.usernameText}**.`)
+            if (data.following) return error(`I'm already following **${data.user.id}** in <#${data.channel.id}>. You can tell me to unfollow them.`)
 
             // All checks passed, add this user to the database
             return self.database.trackVideos(data.user.id, data.channel.id)
         })
         .then(() => {
-            let embed = new Embed();
+            let embed = new Embed()
             embed.setDescription(`I'll now post new videos from [${data.user.id}](${data.user.link}) in <#${data.channel.id}>. You can tell me to unfollow them too.`)
             embed.setTitle(`Followed!`)
             embed.setColor("#FFFFFF")
             embed.setThumbnail("http:" + data.user.avatar)
             return msg.channel.sendEmbed(embed)
         })
+        .catch((err) => {
+            console.log(err)
+            // Eat rejects due to an invalid command and let errors flow through
+            if (err !== "invalid") throw err
+        })
     }
 
+    /**
+     * Handles the untrackVideos command
+     * @param {Object} entities 
+     * @param {Message} msg 
+     */
     untrackVideos(entities, msg) {
+        let self = this
+        let data
 
+        return this.validate(entities, msg).then((d) => {
+            data = d
+
+            let error = (txt) => {
+                msg.reply(txt); 
+                return Promise.reject("invalid")
+            }
+            
+            if (data.missingUsername) return error("you need to specify a Plays.tv username to unfollow them.")
+            if (data.invalidChannel) return error(`I don't know what channel #${data.channelText} is.`)
+            if (data.invalidUsername) return error(`I couldn't find the Plays.tv username **${data.usernameText}**.`)
+            if (!data.following) return error(`I'm not following **${data.user.id}** in <#${data.channel.id}>. You can tell me to follow them.`)
+
+            // All checks passed, removed the user from the database
+            return self.database.untrackVideos(data.user.id, data.channel.id)
+        })
+        .then(() => msg.reply(`I'll stop posting new videos from **${data.user.id}** in <#${data.channel.id}>.`))
+        .catch((err) => {
+            console.log(err)
+            // Eat rejects due to an invalid command and let errors flow through
+            if (err !== "invalid") throw err
+        })
     }
+
 }
 
 module.exports = Processor

@@ -47,6 +47,20 @@ class Database {
     }
 
     /**
+     * Remove the record from the database to track this user
+     */
+    untrackVideos(id, channelId) {
+        return this.db.child(`trackedUsers/${id}/events/newVideo`).once('value').then((sc) => {
+            if (!sc.val()) return
+            let chns = sc.val()
+            console.log(chns)
+            for (let key in chns) {
+                if (chns[key] == channelId) sc.ref.child(key).remove()
+            } 
+        })
+    }
+
+    /**
      * Gets the list of channels subscribed to recieve this event for the id
      * @param {String} id The user id to trigger the event
      * @param {String} event The event this channel is subscribed to
