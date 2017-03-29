@@ -30,10 +30,24 @@ class Database {
     }
 
     /**
+     * Get last video time
+     */
+     getLastUploadTime(id) {
+        return this.db.child(`trackedUsers/${id}/lastUploadTime`).once("value").then((sc) => sc.val() || 0)
+    }
+
+    /**
      * Update the lastUpdatedAt time for this user
      */
     updateTime(id) {
         return this.db.child(`trackedUsers/${id}/lastUpdatedAt`).set(Date.now())
+    }
+
+    /**
+     * Update the last video upload time
+     */
+    updateLastUploadTime(id, time) {
+        return this.db.child(`trackedUsers/${id}/lastUploadTime`).set(time)
     }
 
 
@@ -47,7 +61,10 @@ class Database {
         this.db.child(`trackedUsers/${id}/events/newVideo`).push().set(channelId)
         return this.db.child(`trackedUsers/${id}/events/newVideo`).once("value").then((sc) => {
             // If this is the first time that the user has been tracked, update the time
-            if (sc.val() == null || sc.val().lastUpdatedAt == null) return self.updateTime(id)
+            if (sc.val() == null || sc.val().lastUpdatedAt == null) {
+                self.updateLastUploadTime(id, Date.now())
+                return self.updateTime(id)
+            }
         })
     }
 

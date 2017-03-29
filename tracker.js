@@ -16,9 +16,15 @@ class Tracker extends EventEmitter {
         return this.database.getTrackedUsers()
         .then((trackedUsers) => {
             for (let userId in trackedUsers) {
+                let threshold = (120000 + Math.random() * 10000)
+                let age = Date.now() - trackedUsers[userId].lastUpdatedAt
+
                 // Only check this user if it wasn't checked in the last 2 minutes or so
-                if (Date.now() - trackedUsers[userId].lastUpdatedAt < (120000 + Math.random() * 10000)) continue
-                return self.checkForNewVideos(userId) // Check for new videos
+                if (age < threshold) {
+                    continue
+                } 
+
+                return self.checkForNewVideos(userId, trackedUsers[userId].lastUploadTime) // Check for new videos
             }
         })
     }
@@ -28,18 +34,16 @@ class Tracker extends EventEmitter {
      * Check for new videos for this user and emit events
      * @param {id} userId User id to check
      */
-    checkForNewVideos(userId) {
+    checkForNewVideos(userId, lastUploadTime) {
         let videos
         let self = this
 
         // Get 5 latest videos for this user
         return this.playstv.videos.search({userId: userId}, 5, "recent", "desc")
         .then((vids) => {
-            videos = vids
-            return self.database.getLastUpdated(userId)
-        }).then((lastChecked) => {
-            for (let video of videos) {
-                if (video.upload_time > lastChecked / 1000) {
+            for (let video of vids) {
+                if (video.upload_time * 1000 > lastUploadTime) {
+                    self.database.updateLastUploadTime(userId, video.upload_time * 1000)
                     self.emit("newVideo", video)
                 }
             }

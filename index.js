@@ -25,7 +25,7 @@ bot.once("ready", () => {
     // Update every two minutes
     setInterval(() => {
         tracker.update().catch(console.error)
-    }, 120000) 
+    }, 100000) 
 })
 
 bot.on("guildCreate", (guild) => updateChannel.sendMessage("I've just joined the server **" + guild.name + "**"))
@@ -37,7 +37,7 @@ tracker.on("newVideo", (eventData) => {
         embed = new Discord.RichEmbed()
         embed.setTitle(wordwrap(eventData.description))
         embed.setThumbnail("http:" + eventData.author.avatar)
-        embed.setDescription(`by ${eventData.author.id}`)
+        embed.setDescription(`by **${eventData.author.id}** - [view video](${eventData.link})`)
         embed.setTimestamp(new Date(eventData.upload_time * 1000))
         embed.setImage("http:" + eventData.thumbnail)
         embed.setColor("#FFFFFF")
