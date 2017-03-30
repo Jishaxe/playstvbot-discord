@@ -25,7 +25,7 @@ bot.once("ready", () => {
     // Update every two minutes
     setInterval(() => {
         tracker.update().catch(console.error)
-    }, 100000) 
+    }, 10000) 
 })
 
 bot.on("guildCreate", (guild) => updateChannel.sendMessage("I've just joined the server **" + guild.name + "**"))

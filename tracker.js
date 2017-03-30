@@ -18,7 +18,7 @@ class Tracker extends EventEmitter {
             for (let userId in trackedUsers) {
                 let threshold = (120000 + Math.random() * 10000)
                 let age = Date.now() - trackedUsers[userId].lastUpdatedAt
-
+                
                 // Only check this user if it wasn't checked in the last 2 minutes or so
                 if (age < threshold) {
                     continue
